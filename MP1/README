@@ -1,0 +1,3 @@
+The user program simply writes it's PID into /proc/mp1/status. It then busy increments an unsigned long variable to 2^32. Thus, it can simply be ran with no parameters, as ./userapp &.
+
+However, it can be ran with a second integer parameter, and if so, it will busy increment the unsigned long variable to whatever the parameter is. For example, doing ./userapp 10 will increment the unsigned long variable to 10, and then exit.

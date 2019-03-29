@@ -1,0 +1,6 @@
+linux-stable
+*.pdf
+*.ko
+*.o
+*.user
+*.cmd

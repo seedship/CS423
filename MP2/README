@@ -1,0 +1,25 @@
+=====Implementation=====
+
+I implemented the RMS scheduler as follows. Registeration, Deregistration, and Yield are accomplished via the procfs. The write handler has a case statement that switches based on the first character, and then invokes a registration handler, deregistration handler, or yield handler.
+
+Timer interrupts are used to set processes to ready. Whenever a process passes it's deadline, it is set to ready, so the dispatcher can schedule it.
+
+The dispatcher thread is woken up by the yield handler and timer interrupt. It finds the lowest period task and schedules it, preempting the currently running task if necessary.
+
+=====Design decisions=====
+
+Mutexes are used to protect the MP2 task list and currently scheduled process. This is to protect them from race conditions.
+
+A kernel linked list is used to hold all the MP2 task structs. This is so that they can be easily allocated, traversed, and deallocated.
+
+A slab cache allocator is used to create MP2 task structs. This is so they can be created quickly.
+
+An enum was used to keep track of possible states. This was to make the code more readable.
+
+When tasks are preempted, their status is set to sleep, however, instead of being put to sleep, they are changed to SCHED_NORMAL, and ran by Linux's CFS scheduler. Thus, they may continue to execute if more cores are available. This is to increase throughput.
+
+=====Testing=====
+
+userapp takes 3 arguments, computation time, period, and number of jobs. The userapp then has a busy wait that records the time that the job starts, and wait until computation time has passed. The process is repeated jobs number of times.
+
+A shell script, run.sh, is setup to run multiple userapps. To test the RMS scheduler and see that tasks are being scheduled correctly, one needs to run ./run.sh .
