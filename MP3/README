@@ -1,0 +1,19 @@
+=====Implementation=====
+
+I implemented the MP3 memory profiler as follows. Registeration and Deregistration are accomplished via the procfs. The write handler has a case statement that switches based on the first character, and then invokes a registration handler or deregistration handler.
+
+Delayed work queues are used to update the task structs' information about page fault count and CPU utilization. Each call to the workqueue handler will check if there are any tasks in the list, and if so, reschedule itself. Upon the first registration, the registration handler will schedule the workqueue handler.
+
+=====Design decisions=====
+
+Mutexes are used to protect the MP3 task list and currently scheduled process. This is to protect them from race conditions.
+
+A kernel linked list is used to hold all the MP3 task structs. This is so that they can be easily allocated, traversed, and deallocated.
+
+A uint8_t type was used for the virtual buffer. This was to make sizing easier. When writing to it, the pointer was cast to an unsigned long pointer to make indexing easier.
+
+=====Testing=====
+
+./run1.sh will run 1 instance of the worker thread with 200MB Memory, Random Locality Access, and 10,000 accesses per iteration.
+./run1.sh will run 5 instances of the worker thread with 200MB Memory, Random Locality Access, and 10,000 accesses per iteration.
+./run11.sh will run 11 instances of the worker thread with 200MB Memory, Random Locality Access, and 10,000 accesses per iteration.

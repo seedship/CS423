@@ -90,7 +90,11 @@ mp3_task_struct * find_mp3_task_struct_by_pid(pid_t pid){
 static void mp3_work_func(struct work_struct *work);
 
 DECLARE_DELAYED_WORK(mp3_deplayed_work, mp3_work_func);
-
+/**
+ * @brief mp3_work_func - This function cycles through the workstruct list, and
+ * updates the page fault and utilization counts
+ * @param work - ignored
+ */
 static void mp3_work_func(struct work_struct *work){
 	struct list_head *pos;
 	struct list_head *q;
@@ -257,6 +261,13 @@ static const struct file_operations mp3_file = {
 		.write = mp3_write
 };
 
+/**
+ * @brief chardev_mmap - This function is called whenever a user space application
+ * wants to use shared memory pages
+ * @param filp - input file
+ * @param vma - virtual memory struct
+ * @return  0 on success
+ */
 static int chardev_mmap(struct file *filp, struct vm_area_struct *vma)
 {
 	unsigned long x;
