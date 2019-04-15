@@ -272,10 +272,11 @@ static int chardev_mmap(struct file *filp, struct vm_area_struct *vma)
 {
 	unsigned long x;
 	unsigned long pfn;
+	unsigned long size = vma->vm_end - vma->vm_start;
 
-	if(vma->vm_end - vma->vm_start > VBUFFER_SIZE_B) return -EINVAL;
+	if(size > VBUFFER_SIZE_B) return -EINVAL;
 
-	for(x = 0; x < VBUFFER_SIZE_B; x+=PAGE_SIZE){
+	for(x = 0; x < size; x+=PAGE_SIZE){
 		pfn = vmalloc_to_pfn((void*)(vbuffer+x));
 		if(remap_pfn_range(vma, vma->vm_start+x, pfn, PAGE_SIZE, vma->vm_page_prot)){
 			printk(KERN_ALERT "MP3 module could not perform mmap!\n");
