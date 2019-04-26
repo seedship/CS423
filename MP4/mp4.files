@@ -1,4 +1,6 @@
 Kconfig
 Makefile
+copy-mp4-debug.sh
+copy-mp4-release.sh
 mp4.c
 mp4_given.h

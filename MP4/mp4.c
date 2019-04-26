@@ -19,6 +19,7 @@
  */
 static int get_inode_sid(struct inode *inode)
 {
+	pr_alert("Enter %s\n", __FUNCTION__);
 	/*
 	 * Add your code here
 	 * ...
@@ -35,10 +36,14 @@ static int get_inode_sid(struct inode *inode)
  */
 static int mp4_bprm_set_creds(struct linux_binprm *bprm)
 {
-	/*
-	 * Add your code here
-	 * ...
-	 */
+	pr_alert("Enter %s\n", __FUNCTION__);
+
+//	int mp4_sec_flag;
+//	mp4_sec_flag = current_cred->mp4_flags;
+
+
+
+
 	return 0;
 }
 
@@ -51,10 +56,20 @@ static int mp4_bprm_set_creds(struct linux_binprm *bprm)
  */
 static int mp4_cred_alloc_blank(struct cred *cred, gfp_t gfp)
 {
-	/*
-	 * Add your code here
-	 * ...
-	 */
+	pr_alert("Enter %s\n", __FUNCTION__);
+
+	struct mp4_security *security;
+
+	security = (struct mp4_security *)kmalloc(sizeof(struct mp4_security), gfp);
+	security->mp4_flags = MP4_NO_ACCESS;
+	if(!security)
+		return -ENOMEM;
+
+	if(!cred)
+		return -EINVAL;
+
+	cred->security = security;
+
 	return 0;
 }
 
@@ -67,10 +82,13 @@ static int mp4_cred_alloc_blank(struct cred *cred, gfp_t gfp)
  */
 static void mp4_cred_free(struct cred *cred)
 {
-	/*
-	 * Add your code here
-	 * ...
-	 */
+	pr_alert("Enter %s\n", __FUNCTION__);
+
+	struct mp4_security *security = cred->security;
+
+//	BUG_ON(cred->security && (unsigned long) cred->security < PAGE_SIZE);
+	cred->security = (void *)NULL;
+	kfree(security);
 }
 
 /**
@@ -84,6 +102,38 @@ static void mp4_cred_free(struct cred *cred)
 static int mp4_cred_prepare(struct cred *new, const struct cred *old,
 			    gfp_t gfp)
 {
+	pr_alert("Enter %s\n", __FUNCTION__);
+
+	const struct mp4_security *old_mp4sec;
+	struct mp4_security *mp4_sec;
+
+	pr_alert("Reached %d\n", __LINE__);
+	pr_alert("new is: %p\n", new);
+
+	if(!old || !old->security){
+//		pr_alert("old: %p\n", old);
+//		if(old)
+//			pr_alert("old->security: %p\n", old->security);
+//		pr_alert("Returning -EINVAL at %d\n", __LINE__);
+//		return -EINVAL;
+		mp4_cred_alloc_blank(new, gfp);
+		return 0;
+	}
+
+	old_mp4sec = (const struct mp4_security *)old->security;
+
+	if(!old_mp4sec){
+		mp4_sec = kmemdup(old_mp4sec, sizeof(struct mp4_security), gfp);
+		if(!mp4_sec){
+			pr_alert("Returning -ENOMEM at %d\n", __LINE__);
+			return -ENOMEM;
+		}
+
+		pr_alert("Reached %d\n", __LINE__);
+		new->security = mp4_sec;
+	}
+
+	pr_alert("Returning at %d\n", __LINE__);
 	return 0;
 }
 
@@ -104,6 +154,7 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
 				   const struct qstr *qstr,
 				   const char **name, void **value, size_t *len)
 {
+	pr_alert("Enter %s\n", __FUNCTION__);
 	/*
 	 * Add your code here
 	 * ...
@@ -123,6 +174,7 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
  */
 static int mp4_has_permission(int ssid, int osid, int mask)
 {
+	pr_alert("Enter %s\n", __FUNCTION__);
 	/*
 	 * Add your code here
 	 * ...
@@ -143,6 +195,7 @@ static int mp4_has_permission(int ssid, int osid, int mask)
  */
 static int mp4_inode_permission(struct inode *inode, int mask)
 {
+	pr_alert("Enter %s\n", __FUNCTION__);
 	/*
 	 * Add your code here
 	 * ...
@@ -181,7 +234,7 @@ static __init int mp4_init(void)
 	if (!security_module_enable("mp4"))
 		return 0;
 
-	pr_info("mp4 LSM initializing..");
+	pr_alert("mp4 LSM initializing..");
 
 	/*
 	 * Register the mp4 hooks with lsm
