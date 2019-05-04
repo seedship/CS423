@@ -8,4 +8,3 @@ make -j`getconf _NPROCESSORS_ONLN` bindeb-pkg
 cd ~/
 sudo dpkg -i linux-image-4.4.0*
 sudo dpkg -i linux-headers-4.4.0*
-#sudo update-grub
