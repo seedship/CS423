@@ -52,14 +52,12 @@ static int get_inode_sid(struct inode *inode)
 	if(inode->i_op->getxattr){
 		rc = inode->i_op->getxattr(dentry, XATTR_NAME_MP4,
 								   buf, INODE_XATTR_LEN);
+		dput(dentry);
 		if(rc){
 			xattr_cred = __cred_ctx_to_sid(buf);
 			kfree(buf);
 			return xattr_cred;
 		}
-		dput(dentry);
-	} else {
-		dput(dentry);
 	}
 	kfree(buf);
 	return 0;
@@ -193,16 +191,15 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
 								   const struct qstr *qstr,
 								   const char **name, void **value, size_t *len)
 {
-	//	pr_alert("Enter %s\n", __FUNCTION__);
+//		pr_alert("Enter %s\n", __FUNCTION__);
 	const struct mp4_security *tsec = current_security();
 
 	if(!tsec)
 		return -EOPNOTSUPP;
 
 	if(tsec->mp4_flags == MP4_TARGET_SID){
-		if(name)
+		if(name && value && len){
 			*name = XATTR_MP4_SUFFIX;
-		if(value && len){
 			*value = "read-write";
 			*len = 11; // overestimate
 		}
@@ -277,7 +274,7 @@ static int mp4_inode_permission(struct inode *inode, int mask)
 	}
 
 	if(printk_ratelimit()){
-		pr_alert("Inode path: %s Mask: 0x%x\n", path, mask);
+//		pr_alert("Inode path: %s Mask: 0x%x\n", path, mask);
 	}
 	//	return 0;
 
