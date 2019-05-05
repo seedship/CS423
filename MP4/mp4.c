@@ -9,8 +9,6 @@
 #include <linux/binfmts.h>
 #include "mp4_given.h"
 
-
-#define MP4_SECURITY_NAME "security.mp4"
 #define INODE_XATTR_LEN 255
 
 static int mp4_cred_alloc_blank(struct cred *cred, gfp_t gfp);
@@ -52,7 +50,7 @@ static int get_inode_sid(struct inode *inode)
 	buf[INODE_XATTR_LEN] = '\0';
 
 	if(inode->i_op->getxattr){
-		rc = inode->i_op->getxattr(dentry, MP4_SECURITY_NAME,
+		rc = inode->i_op->getxattr(dentry, XATTR_NAME_MP4,
 					   buf, INODE_XATTR_LEN);
 		if(rc){
 			xattr_cred = __cred_ctx_to_sid(buf);
@@ -76,8 +74,6 @@ static int mp4_bprm_set_creds(struct linux_binprm *bprm)
 {
 	pr_alert("Enter %s\n", __FUNCTION__);
 
-//	int mp4_sec_flag;
-//	mp4_sec_flag = current_cred->mp4_flags;
 	if(!bprm || !bprm->cred)
 		return -EINVAL;
 
@@ -136,7 +132,6 @@ static void mp4_cred_free(struct cred *cred)
 
 	struct mp4_security *security = cred->security;
 
-//	BUG_ON(cred->security && (unsigned long) cred->security < PAGE_SIZE);
 	cred->security = (void *)NULL;
 	kfree(security);
 }
@@ -196,11 +191,26 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
 				   const struct qstr *qstr,
 				   const char **name, void **value, size_t *len)
 {
-//	pr_alert("Enter %s\n", __FUNCTION__);
+	pr_alert("Enter %s\n", __FUNCTION__);
+	const struct mp4_security *tsec = current_security();
+
+	if(!tsec)
+		return -EOPNOTSUPP;
+
+	if(tsec->mp4_flags == MP4_TARGET_SID){
+		if(name)
+			*name = XATTR_MP4_SUFFIX;
+		if(value && len){
+			*value = "read-write";
+			*len = 20; // overestimate
+		}
+	}
+
 	/*
 	 * Add your code here
 	 * ...
 	 */
+
 	return 0;
 }
 
