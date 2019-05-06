@@ -5,5 +5,7 @@ copy-mp4-release.sh
 create_debugging_symbols.sh
 mp4.c
 mp4_given.h
+passwd.perm
+passwd.perm.unload
 test.perm
 test.perm.unload
