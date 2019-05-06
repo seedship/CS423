@@ -35,17 +35,23 @@ static int get_inode_sid(struct inode *inode)
 	int rc;
 	int xattr_cred;
 
-	if(!inode)
+	if(!inode){
+		pr_alert("Returning EINVAL at %d\n", __LINE__);
 		return -EINVAL;
+	}
 
 	dentry = d_find_alias(inode);
-	if(!dentry)
+	if(!dentry){
+		pr_alert("Returning EINVAL at %d\n", __LINE__);
 		return -EINVAL;
+	}
 
 	buf = kmalloc(INODE_XATTR_LEN, GFP_KERNEL);
 
-	if(!buf)
+	if(!buf){
+		pr_alert("Returning ENOMEM at %d\n", __LINE__);
 		return -ENOMEM;
+	}
 
 	buf[INODE_XATTR_LEN] = '\0';
 
@@ -53,14 +59,21 @@ static int get_inode_sid(struct inode *inode)
 		rc = inode->i_op->getxattr(dentry, XATTR_NAME_MP4,
 								   buf, INODE_XATTR_LEN);
 		dput(dentry);
-		if(rc){
+		if(rc && rc != -ENODATA){
+			buf[rc] = '\0';
 			xattr_cred = __cred_ctx_to_sid(buf);
+//			if(printk_ratelimit()){
+//				pr_alert("rc is %d, buf is %s, returning %d\n", rc, buf, xattr_cred);
+//			}
 			kfree(buf);
 			return xattr_cred;
 		}
 	}
 	kfree(buf);
-	return 0;
+//	if(printk_ratelimit()){
+//		pr_alert("returning MP4_NO_ACCESS\n");
+//	}
+	return MP4_NO_ACCESS;
 }
 
 /**
@@ -74,8 +87,10 @@ static int mp4_bprm_set_creds(struct linux_binprm *bprm)
 {
 	//	pr_alert("Enter %s\n", __FUNCTION__);
 
-	if(!bprm || !bprm->cred)
+	if(!bprm || !bprm->cred){
+		pr_alert("Returning EINVAL at %d\n", __LINE__);
 		return -EINVAL;
+	}
 
 	struct mp4_security * security = bprm->cred->security;
 
@@ -104,15 +119,19 @@ static int mp4_cred_alloc_blank(struct cred *cred, gfp_t gfp)
 
 	struct mp4_security *security;
 
-	if(!cred)
+	if(!cred){
+		pr_alert("Returning EINVAL at %d\n", __LINE__);
 		return -EINVAL;
+	}
 
 	security = (struct mp4_security *)kmalloc(sizeof(struct mp4_security), gfp);
 	security->mp4_flags = MP4_NO_ACCESS;
 
 	cred->security = security;
-	if(!security)
+	if(!security){
+		pr_alert("Returning ENOMEM at %d\n", __LINE__);
 		return -ENOMEM;
+	}
 
 
 
@@ -162,7 +181,7 @@ static int mp4_cred_prepare(struct cred *new, const struct cred *old,
 	if(!old_mp4sec){
 		mp4_sec = kmemdup(old_mp4sec, sizeof(struct mp4_security), gfp);
 		if(!mp4_sec){
-			//			pr_alert("Returning -ENOMEM at %d\n", __LINE__);
+			pr_alert("Returning -ENOMEM at %d\n", __LINE__);
 			return -ENOMEM;
 		}
 
@@ -177,7 +196,10 @@ static int mp4_cred_prepare(struct cred *new, const struct cred *old,
 /**
  * mp4_inode_init_security - Set the security attribute of a newly created inode
  *
- * @inode: the newly created inode
+ * @inode: the newly created i
+			if(printk_ratelimit()){
+				pr_alert("rc is %d, buf is %s, returning %d\n", rc, buf, xattr_cred);
+			}node
  * @dir: the containing directory
  * @qstr: unused
  * @name: where to put the attribute name
@@ -191,11 +213,13 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
 								   const struct qstr *qstr,
 								   const char **name, void **value, size_t *len)
 {
-//		pr_alert("Enter %s\n", __FUNCTION__);
+	//		pr_alert("Enter %s\n", __FUNCTION__);
 	const struct mp4_security *tsec = current_security();
 
-	if(!tsec)
+	if(!tsec){
+//		pr_alert("Current security NULL! %d\n", __LINE__);
 		return -EOPNOTSUPP;
+	}
 
 	if(tsec->mp4_flags == MP4_TARGET_SID){
 		if(name && value && len){
@@ -255,6 +279,7 @@ static int mp4_inode_permission(struct inode *inode, int mask)
 
 	dentry = d_find_alias(inode);
 	if(!dentry){
+		dput(dentry);
 		pr_alert("%d dentry NULL!\n", __LINE__);
 		return 0;
 	}
@@ -264,7 +289,7 @@ static int mp4_inode_permission(struct inode *inode, int mask)
 
 	buf = kmalloc(255 * sizeof(char), GFP_KERNEL);
 
-	buf[254] = '/0';
+	buf[254] = '\0';
 
 	path = dentry_path_raw(dentry, buf, 254);
 	dput(dentry);
@@ -273,26 +298,26 @@ static int mp4_inode_permission(struct inode *inode, int mask)
 		return 0;
 	}
 
-	if(printk_ratelimit()){
-//		pr_alert("Inode path: %s Mask: 0x%x\n", path, mask);
-	}
+	//	if(printk_ratelimit()){
+	//		pr_alert("Inode path: %s Mask: 0x%x\n", path, mask);
+	//	}
 	//	return 0;
 
 	const struct mp4_security *tsec = current_security();
-//	struct mp4_security *inode_sec = inode->i_security;
+	//	struct mp4_security *inode_sec = inode->i_security;
 	int inode_sec = get_inode_sid(inode);
 
 	if(inode_sec < 0 || inode_sec > 6){
 		pr_alert("inode sec is: %d, which is out of bounds\n", inode_sec);
 	}
 
-//	if(!inode_sec){
-//		if(printk_ratelimit()){;
-//			pr_alert("inode has no security policy, allowing access\n");
-//		}
-//		kfree(buf);
-//		return 0;
-//	}
+	//	if(!inode_sec){
+	//		if(printk_ratelimit()){;
+	//			pr_alert("inode has no security policy, allowing access\n");
+	//		}
+	//		kfree(buf);
+	//		return 0;
+	//	}
 
 	//Figure 2
 	if(tsec && tsec->mp4_flags == MP4_TARGET_SID){
@@ -395,7 +420,7 @@ static __init int mp4_init(void)
 	if (!security_module_enable("mp4"))
 		return 0;
 
-	pr_alert("mp4 LSM initializing..");
+	pr_alert("mp4 LSM initializing...\n");
 
 	/*
 	 * Register the mp4 hooks with lsm

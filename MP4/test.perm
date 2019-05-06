@@ -1,4 +1,6 @@
-setfattr -n security.mp4 -v target /bin/cat
-setfattr -n security.mp4 -v dir /home
-setfattr -n security.mp4 -v dir /home/rnai2
-setfattr -n security.mp4 -v read-only /home/rnai2/file.txt
+sudo setfattr -n security.mp4 -v target /bin/cat
+sudo setfattr -n security.mp4 -v dir /home
+sudo setfattr -n security.mp4 -v dir /etc
+sudo setfattr -n security.mp4 -v read-only /etc/ld.so.cache
+sudo setfattr -n security.mp4 -v dir /home/rnai2
+sudo setfattr -n security.mp4 -v read-only /home/rnai2/file.txt
