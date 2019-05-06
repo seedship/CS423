@@ -149,6 +149,11 @@ static void mp4_cred_free(struct cred *cred)
 {
 	//	pr_alert("Enter %s\n", __FUNCTION__);
 
+	if(!cred || !cred->security){
+		pr_alert("Returning -EINVAL at %d", __LINE__);
+		return -EINVAL;
+	}
+
 	struct mp4_security *security = cred->security;
 
 	cred->security = (void *)NULL;
@@ -168,7 +173,6 @@ static int mp4_cred_prepare(struct cred *new, const struct cred *old,
 {
 	//	pr_alert("Enter %s\n", __FUNCTION__);
 
-	const struct mp4_security *old_mp4sec;
 	struct mp4_security *mp4_sec;
 
 	if(!old || !old->security){
@@ -176,20 +180,16 @@ static int mp4_cred_prepare(struct cred *new, const struct cred *old,
 		return 0;
 	}
 
-	old_mp4sec = (const struct mp4_security *)old->security;
-
-	if(!old_mp4sec){
-		mp4_sec = kmemdup(old_mp4sec, sizeof(struct mp4_security), gfp);
-		if(!mp4_sec){
-			pr_alert("Returning -ENOMEM at %d\n", __LINE__);
-			return -ENOMEM;
-		}
-
-		//		pr_alert("Reached %d\n", __LINE__);
-		new->security = mp4_sec;
+	mp4_sec = kmemdup(old->security, sizeof(struct mp4_security), gfp);
+	if(!mp4_sec){
+		pr_alert("Returning -ENOMEM at %d\n", __LINE__);
+		return -ENOMEM;
 	}
 
-	//	pr_alert("Returning at %d\n", __LINE__);
+	//		pr_alert("Reached %d\n", __LINE__);
+	new->security = mp4_sec;
+
+//	pr_alert("Returning at %d\n", __LINE__);
 	return 0;
 }
 
@@ -213,7 +213,7 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
 								   const struct qstr *qstr,
 								   const char **name, void **value, size_t *len)
 {
-	//		pr_alert("Enter %s\n", __FUNCTION__);
+	pr_alert("Enter %s\n", __FUNCTION__);
 	const struct mp4_security *tsec = current_security();
 
 	if(!tsec){
@@ -221,12 +221,36 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
 		return -EOPNOTSUPP;
 	}
 
+	pr_alert("Made it to %d\n", __LINE__);
+
 	if(tsec->mp4_flags == MP4_TARGET_SID){
+		pr_alert("Made it to %d\n", __LINE__);
 		if(name && value && len){
-			*name = XATTR_MP4_SUFFIX;
-			*value = "read-write";
-			*len = 11; // overestimate
+			if(S_ISDIR(inode->i_mode)) {
+				pr_alert("Made it to %d\n", __LINE__);
+				*name = kstrdup(XATTR_MP4_SUFFIX, GFP_KERNEL);
+				pr_alert("Made it to %d\n", __LINE__);
+				*value = kstrdup("dir-write", GFP_KERNEL);
+				pr_alert("Made it to %d\n", __LINE__);
+				*len = strlen(*value);
+				pr_alert("Made it to %d\n", __LINE__);
+			} else {
+				pr_alert("Made it to %d\n", __LINE__);
+				*name = kstrdup(XATTR_MP4_SUFFIX, GFP_KERNEL);
+				pr_alert("Made it to %d\n", __LINE__);
+				*value = kstrdup("read-write", GFP_KERNEL);
+				pr_alert("Made it to %d\n", __LINE__);
+				*len = strlen(*value);
+				pr_alert("Made it to %d\n", __LINE__);
+			}
+			pr_alert("Made it to %d. Returning 0\n", __LINE__);
+			return 0;
+		} else {
+			pr_alert("%d: Invalid pointers: name: %p value: %p len: %p\n", __LINE__, name, value, len);
+			return -EOPNOTSUPP;
 		}
+	} else {
+		pr_alert("tsec->mp4_flags: %d\n", tsec->mp4_flags);
 	}
 
 	/*
@@ -234,7 +258,7 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
 	 * ...
 	 */
 
-	return 0;
+	return -EOPNOTSUPP;
 }
 
 /**
