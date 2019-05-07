@@ -86,20 +86,22 @@ static int get_inode_sid(struct inode *inode)
 static int mp4_bprm_set_creds(struct linux_binprm *bprm)
 {
 	//	pr_alert("Enter %s\n", __FUNCTION__);
+	struct mp4_security * security;
+	int mp4_security_flags;
 
 	if(!bprm || !bprm->cred){
 		pr_alert("Returning EINVAL at %d\n", __LINE__);
 		return -EINVAL;
 	}
 
-	struct mp4_security * security = bprm->cred->security;
+	security = bprm->cred->security;
 
 	if(!security){
 		mp4_cred_alloc_blank(bprm->cred, GFP_KERNEL);
 		return 0;
 	}
 
-	int mp4_security_flags = get_inode_sid(bprm->file->f_inode);
+	mp4_security_flags = get_inode_sid(bprm->file->f_inode);
 	if(mp4_security_flags == MP4_TARGET_SID)
 		security->mp4_flags = MP4_TARGET_SID;
 
@@ -148,13 +150,14 @@ static int mp4_cred_alloc_blank(struct cred *cred, gfp_t gfp)
 static void mp4_cred_free(struct cred *cred)
 {
 	//	pr_alert("Enter %s\n", __FUNCTION__);
+	struct mp4_security *security;
 
 	if(!cred || !cred->security){
 		pr_alert("Null pointers in cred_free! %d\n", __LINE__);
 		return;
 	}
 
-	struct mp4_security *security = cred->security;
+	security = cred->security;
 
 	cred->security = (void *)NULL;
 	kfree(security);
@@ -251,26 +254,6 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
 }
 
 /**
- * mp4_has_permission - Check if subject has permission to an object
- *
- * @ssid: the subject's security id
- * @osid: the object's security id
- * @mask: the operation mask
- *
- * returns 0 is access granter, -EACCES otherwise
- *
- */
-static int mp4_has_permission(int ssid, int osid, int mask)
-{
-	pr_alert("Enter %s\n", __FUNCTION__);
-	/*
-	 * Add your code here
-	 * ...
-	 */
-	return 0;
-}
-
-/**
  * mp4_inode_permission - Check permission for an inode being opened
  *
  * @inode: the inode in question
@@ -283,7 +266,11 @@ static int mp4_has_permission(int ssid, int osid, int mask)
  */
 static int mp4_inode_permission(struct inode *inode, int mask)
 {
+	const struct mp4_security *tsec;
 	struct dentry *dentry;
+	char * buf;
+	char* path;
+	int inode_sec;
 
 	if(!inode){
 		pr_alert("%d inode NULL!\n", __LINE__);
@@ -297,9 +284,6 @@ static int mp4_inode_permission(struct inode *inode, int mask)
 		return 0;
 	}
 
-	char * buf;
-	char* path;
-
 	buf = kmalloc(255 * sizeof(char), GFP_KERNEL);
 
 	buf[254] = '\0';
@@ -311,9 +295,9 @@ static int mp4_inode_permission(struct inode *inode, int mask)
 		return 0;
 	}
 
-	const struct mp4_security *tsec = current_security();
+	tsec = current_security();
 	//	struct mp4_security *inode_sec = inode->i_security;
-	int inode_sec = get_inode_sid(inode);
+	inode_sec = get_inode_sid(inode);
 
 	if(inode_sec < 0 || inode_sec > 6){
 		pr_alert("inode sec is: %d, which is out of bounds\n", inode_sec);
