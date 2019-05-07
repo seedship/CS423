@@ -1,5 +1,6 @@
-sudo setfattr -x security.mp4 /etc
+sudo setfattr -x security.mp4 /etc/krb5.conf
 sudo setfattr -x security.mp4 /etc/pam.d
+sudo setfattr -x security.mp4 /etc/security
 sudo setfattr -x security.mp4 /lib
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/security
@@ -8,9 +9,13 @@ sudo setfattr -x security.mp4 /usr/bin
 sudo setfattr -x security.mp4 /usr/share
 sudo setfattr -x security.mp4 /usr/share/locale
 sudo setfattr -x security.mp4 /var
+sudo setfattr -x security.mp4 /var/cache
+sudo setfattr -x security.mp4 /var/cache/cracklib
+sudo setfattr -x security.mp4 /etc
 sudo setfattr -x security.mp4 /etc/ld.so.cache
 sudo setfattr -x security.mp4 /etc/login.defs
 sudo setfattr -x security.mp4 /etc/nsswitch.conf
+sudo setfattr -x security.mp4 /etc/ldap.conf
 sudo setfattr -x security.mp4 /etc/pam.d/common-account
 sudo setfattr -x security.mp4 /etc/pam.d/common-auth
 sudo setfattr -x security.mp4 /etc/pam.d/common-password
@@ -18,6 +23,7 @@ sudo setfattr -x security.mp4 /etc/pam.d/common-session
 sudo setfattr -x security.mp4 /etc/pam.d/other
 sudo setfattr -x security.mp4 /etc/pam.d/passwd
 sudo setfattr -x security.mp4 /etc/passwd
+sudo setfattr -x security.mp4 /etc/security/pwquality.conf
 sudo setfattr -x security.mp4 /etc/shadow
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/libcrypt.so.1
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/libnsl.so.1
@@ -26,11 +32,12 @@ sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/libpam_misc.so.0
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/libpthread.so.0
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/librt.so.1
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/security/pam_deny.so
-sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/security/pam_gnome_keyring.so
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/security/pam_permit.so
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/security/pam_systemd.so
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/security/pam_umask.so
 sudo setfattr -x security.mp4 /lib/x86_64-linux-gnu/security/pam_unix.so
 sudo setfattr -x security.mp4 /usr/share/locale/locale.alias
+sudo setfattr -x security.mp4 /var/cache/cracklib/cracklib_dict.pwd
+sudo setfattr -x security.mp4 /var/cache/cracklib/cracklib_dict.pwi
 sudo setfattr -x security.mp4 /usr/bin/passwd
 sudo setfattr -x security.mp4 /etc/.pwd.lock

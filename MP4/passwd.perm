@@ -1,5 +1,6 @@
-sudo setfattr -n security.mp4 -v dir-write /etc
+sudo setfattr -n security.mp4 -v dir /etc/krb5.conf
 sudo setfattr -n security.mp4 -v dir /etc/pam.d
+sudo setfattr -n security.mp4 -v dir /etc/security
 sudo setfattr -n security.mp4 -v dir /lib
 sudo setfattr -n security.mp4 -v dir /lib/x86_64-linux-gnu
 sudo setfattr -n security.mp4 -v dir /lib/x86_64-linux-gnu/security
@@ -8,9 +9,13 @@ sudo setfattr -n security.mp4 -v dir /usr/bin
 sudo setfattr -n security.mp4 -v dir /usr/share
 sudo setfattr -n security.mp4 -v dir /usr/share/locale
 sudo setfattr -n security.mp4 -v dir /var
+sudo setfattr -n security.mp4 -v dir /var/cache
+sudo setfattr -n security.mp4 -v dir /var/cache/cracklib
+sudo setfattr -n security.mp4 -v dir-write /etc
 sudo setfattr -n security.mp4 -v read-only /etc/ld.so.cache
 sudo setfattr -n security.mp4 -v read-only /etc/login.defs
 sudo setfattr -n security.mp4 -v read-only /etc/nsswitch.conf
+sudo setfattr -n security.mp4 -v read-only /etc/ldap.conf
 sudo setfattr -n security.mp4 -v read-only /etc/pam.d/common-account
 sudo setfattr -n security.mp4 -v read-only /etc/pam.d/common-auth
 sudo setfattr -n security.mp4 -v read-only /etc/pam.d/common-password
@@ -18,6 +23,7 @@ sudo setfattr -n security.mp4 -v read-only /etc/pam.d/common-session
 sudo setfattr -n security.mp4 -v read-only /etc/pam.d/other
 sudo setfattr -n security.mp4 -v read-only /etc/pam.d/passwd
 sudo setfattr -n security.mp4 -v read-only /etc/passwd
+sudo setfattr -n security.mp4 -v read-only /etc/security/pwquality.conf
 sudo setfattr -n security.mp4 -v read-only /etc/shadow
 sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/libcrypt.so.1
 sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/libnsl.so.1
@@ -26,11 +32,12 @@ sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/libpam_misc.so.
 sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/libpthread.so.0
 sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/librt.so.1
 sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/security/pam_deny.so
-sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/security/pam_gnome_keyring.so
 sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/security/pam_permit.so
 sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/security/pam_systemd.so
 sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/security/pam_umask.so
 sudo setfattr -n security.mp4 -v read-only /lib/x86_64-linux-gnu/security/pam_unix.so
 sudo setfattr -n security.mp4 -v read-only /usr/share/locale/locale.alias
+sudo setfattr -n security.mp4 -v read-only /var/cache/cracklib/cracklib_dict.pwd
+sudo setfattr -n security.mp4 -v read-only /var/cache/cracklib/cracklib_dict.pwi
 sudo setfattr -n security.mp4 -v target /usr/bin/passwd
 sudo setfattr -n security.mp4 -v write-only /etc/.pwd.lock
