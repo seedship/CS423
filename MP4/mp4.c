@@ -11,6 +11,7 @@
 
 #define INODE_XATTR_LEN 255
 
+//forward declaring
 static int mp4_cred_alloc_blank(struct cred *cred, gfp_t gfp);
 
 /**
@@ -23,18 +24,15 @@ static int mp4_cred_alloc_blank(struct cred *cred, gfp_t gfp);
  */
 static int get_inode_sid(struct inode *inode)
 {
-	//	pr_alert("Enter %s\n", __FUNCTION__);
-	/*
-	 * Add your code here
-	 * ...
-	 */
-
+	//File system variables
 	char *buf;
 	struct dentry *dentry;
 
+	//Credential fetching variables
 	int rc;
 	int xattr_cred;
 
+	//Sanitizing variable
 	if(!inode){
 		pr_alert("Returning EINVAL at %d\n", __LINE__);
 		return -EINVAL;
@@ -46,8 +44,8 @@ static int get_inode_sid(struct inode *inode)
 		return -EINVAL;
 	}
 
+	//Allocate a buffer to copy XATTR data too
 	buf = kmalloc(INODE_XATTR_LEN, GFP_KERNEL);
-
 	if(!buf){
 		pr_alert("Returning ENOMEM at %d\n", __LINE__);
 		return -ENOMEM;
@@ -55,6 +53,7 @@ static int get_inode_sid(struct inode *inode)
 
 	buf[INODE_XATTR_LEN] = '\0';
 
+	//Get XATTR data
 	if(inode->i_op->getxattr){
 		rc = inode->i_op->getxattr(dentry, XATTR_NAME_MP4,
 								   buf, INODE_XATTR_LEN);
@@ -62,17 +61,13 @@ static int get_inode_sid(struct inode *inode)
 		if(rc && rc != -ENODATA){
 			buf[rc] = '\0';
 			xattr_cred = __cred_ctx_to_sid(buf);
-			//			if(printk_ratelimit()){
-			//				pr_alert("rc is %d, buf is %s, returning %d\n", rc, buf, xattr_cred);
-			//			}
+			//Return XATTR if exists
 			kfree(buf);
 			return xattr_cred;
 		}
 	}
+	//Else return MP4_NO_ACCESS
 	kfree(buf);
-	//	if(printk_ratelimit()){
-	//		pr_alert("returning MP4_NO_ACCESS\n");
-	//	}
 	return MP4_NO_ACCESS;
 }
 
@@ -85,10 +80,11 @@ static int get_inode_sid(struct inode *inode)
  */
 static int mp4_bprm_set_creds(struct linux_binprm *bprm)
 {
-	//	pr_alert("Enter %s\n", __FUNCTION__);
+	//Security variables
 	struct mp4_security * security;
 	int mp4_security_flags;
 
+	//Sanitizing input
 	if(!bprm || !bprm->cred){
 		pr_alert("Returning EINVAL at %d\n", __LINE__);
 		return -EINVAL;
@@ -96,11 +92,13 @@ static int mp4_bprm_set_creds(struct linux_binprm *bprm)
 
 	security = bprm->cred->security;
 
+	//If inode has no credentials, give task blank creds
 	if(!security){
 		mp4_cred_alloc_blank(bprm->cred, GFP_KERNEL);
 		return 0;
 	}
 
+	//Fetch inode flags and set task to target if necessary
 	mp4_security_flags = get_inode_sid(bprm->file->f_inode);
 	if(mp4_security_flags == MP4_TARGET_SID)
 		security->mp4_flags = MP4_TARGET_SID;
@@ -117,25 +115,27 @@ static int mp4_bprm_set_creds(struct linux_binprm *bprm)
  */
 static int mp4_cred_alloc_blank(struct cred *cred, gfp_t gfp)
 {
-	//	pr_alert("Enter %s\n", __FUNCTION__);
-
+	//Security bookkeeping variables
 	struct mp4_security *security;
 
+	//Sanitizing input
 	if(!cred){
 		pr_alert("Returning EINVAL at %d\n", __LINE__);
 		return -EINVAL;
 	}
 
+	//Allocate memory
 	security = (struct mp4_security *)kmalloc(sizeof(struct mp4_security), gfp);
-	security->mp4_flags = MP4_NO_ACCESS;
-
-	cred->security = security;
 	if(!security){
 		pr_alert("Returning ENOMEM at %d\n", __LINE__);
 		return -ENOMEM;
 	}
 
+	//Set flag to default value
+	security->mp4_flags = MP4_NO_ACCESS;
 
+	//Set security
+	cred->security = security;
 
 	return 0;
 }
@@ -149,16 +149,19 @@ static int mp4_cred_alloc_blank(struct cred *cred, gfp_t gfp)
  */
 static void mp4_cred_free(struct cred *cred)
 {
-	//	pr_alert("Enter %s\n", __FUNCTION__);
+	//Security helper pointer
 	struct mp4_security *security;
 
+	//Santizing input
 	if(!cred || !cred->security){
 		pr_alert("Null pointers in cred_free! %d\n", __LINE__);
 		return;
 	}
 
+	//Copy the pointer
 	security = cred->security;
 
+	//Set security to NULL before free, in case anyone accesses it
 	cred->security = (void *)NULL;
 	kfree(security);
 }
@@ -174,25 +177,25 @@ static void mp4_cred_free(struct cred *cred)
 static int mp4_cred_prepare(struct cred *new, const struct cred *old,
 							gfp_t gfp)
 {
-	//	pr_alert("Enter %s\n", __FUNCTION__);
-
+	//Security struct for new cred
 	struct mp4_security *mp4_sec;
 
+	//Sanitizing input. If old creds not valid, give new cred blank creds
 	if(!old || !old->security){
 		mp4_cred_alloc_blank(new, gfp);
 		return 0;
 	}
 
+	//Allocate
 	mp4_sec = kmemdup(old->security, sizeof(struct mp4_security), gfp);
 	if(!mp4_sec){
 		pr_alert("Returning -ENOMEM at %d\n", __LINE__);
 		return -ENOMEM;
 	}
 
-	//		pr_alert("Reached %d\n", __LINE__);
+	//Update new cred's security
 	new->security = mp4_sec;
 
-	//	pr_alert("Returning at %d\n", __LINE__);
 	return 0;
 }
 
@@ -216,18 +219,18 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
 								   const struct qstr *qstr,
 								   const char **name, void **value, size_t *len)
 {
-	//	pr_alert("Enter %s\n", __FUNCTION__);
-	const struct mp4_security *tsec = current_security();
+	//Helper pointer
+	const struct mp4_security tsec;
 
+	*tsec = current_security();
+
+	//Input sanatizing
 	if(!tsec){
-		//		pr_alert("Current security NULL! %d\n", __LINE__);
 		return -EOPNOTSUPP;
 	}
 
-	//	pr_alert("Made it to %d\n", __LINE__);
-
+	//If target contains the target SID, set the name, value, and len
 	if(tsec->mp4_flags == MP4_TARGET_SID){
-		//		pr_alert("Made it to %d\n", __LINE__);
 		if(name && value && len){
 			if(S_ISDIR(inode->i_mode)) {
 				*name = kstrdup(XATTR_MP4_SUFFIX, GFP_KERNEL);
@@ -245,11 +248,6 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
 		}
 	}
 
-	/*
-	 * Add your code here
-	 * ...
-	 */
-
 	return -EOPNOTSUPP;
 }
 
@@ -266,17 +264,20 @@ static int mp4_inode_init_security(struct inode *inode, struct inode *dir,
  */
 static int mp4_inode_permission(struct inode *inode, int mask)
 {
+	//Helper variables
 	const struct mp4_security *tsec;
 	struct dentry *dentry;
 	char * buf;
 	char* path;
 	int inode_sec;
 
+	//Input sanitization
 	if(!inode){
 		pr_alert("%d inode NULL!\n", __LINE__);
 		return 0;
 	}
 
+	//Get dentry
 	dentry = d_find_alias(inode);
 	if(!dentry){
 		dput(dentry);
@@ -284,10 +285,15 @@ static int mp4_inode_permission(struct inode *inode, int mask)
 		return 0;
 	}
 
+	//Allocate a buffer
 	buf = kmalloc(255 * sizeof(char), GFP_KERNEL);
-
+	if(!buf){
+		pr_alert("mp4.c:%d No memory\n", __LINE__);
+		return 0;
+	}
 	buf[254] = '\0';
 
+	//Get path of inode
 	path = dentry_path_raw(dentry, buf, 254);
 	dput(dentry);
 
@@ -296,14 +302,14 @@ static int mp4_inode_permission(struct inode *inode, int mask)
 	}
 
 	tsec = current_security();
-	//	struct mp4_security *inode_sec = inode->i_security;
 	inode_sec = get_inode_sid(inode);
 
+	//Snaitization check
 	if(inode_sec < 0 || inode_sec > 6){
 		pr_alert("inode sec is: %d, which is out of bounds\n", inode_sec);
 	}
 
-	//Figure 2
+	//Implementation of flowchart in Figure 2
 	if(tsec && tsec->mp4_flags == MP4_TARGET_SID){
 		switch (inode_sec) {
 			case MP4_NO_ACCESS:

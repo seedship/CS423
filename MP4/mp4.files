@@ -1,5 +1,6 @@
 Kconfig
 Makefile
+README
 copy-mp4-debug.sh
 copy-mp4-release.sh
 create_debugging_symbols.sh

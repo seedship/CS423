@@ -1,4 +1,7 @@
+sudo setfattr -n security.mp4 -v dir /etc/gss
+sudo setfattr -n security.mp4 -v dir /etc/gss/mech.d
 sudo setfattr -n security.mp4 -v dir /etc/krb5.conf
+sudo setfattr -n security.mp4 -v dir /etc/ldap
 sudo setfattr -n security.mp4 -v dir /etc/pam.d
 sudo setfattr -n security.mp4 -v dir /etc/security
 sudo setfattr -n security.mp4 -v dir /lib
@@ -12,10 +15,13 @@ sudo setfattr -n security.mp4 -v dir /var
 sudo setfattr -n security.mp4 -v dir /var/cache
 sudo setfattr -n security.mp4 -v dir /var/cache/cracklib
 sudo setfattr -n security.mp4 -v dir-write /etc
+sudo setfattr -n security.mp4 -v read-only /etc/host.conf
+sudo setfattr -n security.mp4 -v read-only /etc/hosts
 sudo setfattr -n security.mp4 -v read-only /etc/ld.so.cache
+sudo setfattr -n security.mp4 -v read-only /etc/ldap.conf
+sudo setfattr -n security.mp4 -v read-only /etc/ldap/ldap.conf
 sudo setfattr -n security.mp4 -v read-only /etc/login.defs
 sudo setfattr -n security.mp4 -v read-only /etc/nsswitch.conf
-sudo setfattr -n security.mp4 -v read-only /etc/ldap.conf
 sudo setfattr -n security.mp4 -v read-only /etc/pam.d/common-account
 sudo setfattr -n security.mp4 -v read-only /etc/pam.d/common-auth
 sudo setfattr -n security.mp4 -v read-only /etc/pam.d/common-password

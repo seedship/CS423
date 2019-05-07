@@ -1,4 +1,7 @@
+sudo setfattr -x security.mp4 /etc/gss
+sudo setfattr -x security.mp4 /etc/gss/mech.d
 sudo setfattr -x security.mp4 /etc/krb5.conf
+sudo setfattr -x security.mp4 /etc/ldap
 sudo setfattr -x security.mp4 /etc/pam.d
 sudo setfattr -x security.mp4 /etc/security
 sudo setfattr -x security.mp4 /lib
@@ -12,10 +15,13 @@ sudo setfattr -x security.mp4 /var
 sudo setfattr -x security.mp4 /var/cache
 sudo setfattr -x security.mp4 /var/cache/cracklib
 sudo setfattr -x security.mp4 /etc
+sudo setfattr -x security.mp4 /etc/host.conf
+sudo setfattr -x security.mp4 /etc/hosts
 sudo setfattr -x security.mp4 /etc/ld.so.cache
+sudo setfattr -x security.mp4 /etc/ldap.conf
+sudo setfattr -x security.mp4 /etc/ldap/ldap.conf
 sudo setfattr -x security.mp4 /etc/login.defs
 sudo setfattr -x security.mp4 /etc/nsswitch.conf
-sudo setfattr -x security.mp4 /etc/ldap.conf
 sudo setfattr -x security.mp4 /etc/pam.d/common-account
 sudo setfattr -x security.mp4 /etc/pam.d/common-auth
 sudo setfattr -x security.mp4 /etc/pam.d/common-password

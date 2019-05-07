@@ -1,0 +1,15 @@
+=====Design decisions=====
+
+I used mp4_inode_permission to handle all the permission logic, and removed the function handle for mp4_permission.
+
+I used an if statement to check if the running task had the SID target, and depending if it did or not, the correct switch statement to properly decide correct access.
+
+=====Code Status=====
+My code is fully functional and implements least privilege for /usr/bin/passwd.
+
+=====Testing=====
+I used test.perm and test.perm.unload to verify proper access control. I changed the xattr being set, and verified the correct behavior happened.
+
+=====Least Privilege Policy=====
+
+I ran /usr/bin/passwd when the enforcement was no active (mp4_inode_permission would always return true), and printed the path in question when the access should have been denied. I then traced through all the valid paths, and set them accordingly. The full list of paths and their permissions can be found in passwd.perm.
